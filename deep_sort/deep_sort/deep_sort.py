@@ -12,14 +12,14 @@ __all__ = ['DeepSort'] # __all__ 提供了暴露接口用的”白名单“
 
 
 class DeepSort(object):
-    def __init__(self, model_path, max_dist=0.2, min_confidence=0.3, nms_max_overlap=1.0, max_iou_distance=0.7, max_age=70, n_init=3, nn_budget=100, use_cuda=True):
+    def __init__(self, model_path, max_dist=0.2, min_confidence=0.5, nms_max_overlap=1.0, max_iou_distance=0.7, max_age=70, n_init=3, nn_budget=100, use_cuda=True):
         self.min_confidence = min_confidence # 检测结果置信度阈值 
         self.nms_max_overlap = nms_max_overlap # 非极大抑制阈值，设置为1代表不进行抑制
 
         self.extractor = Extractor(model_path, use_cuda=use_cuda) # 用于提取一个batch图片对应的特征
 
-        max_cosine_distance = max_dist # 最大余弦距离，用于级联匹配，如果大于该阈值，则忽略
-        nn_budget = 100 # 每个类别gallery最多的外观描述子的个数，如果超过，删除旧的
+        max_cosine_distance = 0.7 # 最大余弦距离，用于级联匹配，如果大于该阈值，则忽略
+        nn_budget = None # 每个类别gallery最多的外观描述子的个数，如果超过，删除旧的
         # NearestNeighborDistanceMetric 最近邻距离度量
         # 对于每个目标，返回到目前为止已观察到的任何样本的最近距离（欧式或余弦）。
         # 由距离度量方法构造一个 Tracker。
@@ -49,7 +49,7 @@ class DeepSort(object):
         # output bbox identities
         outputs = []
         for track in self.tracker.tracks:
-            if not track.is_confirmed() or track.time_since_update > 1:
+            if not track.is_confirmed() or track.time_since_update > 7:
                 continue
             box = track.to_tlwh()
             x1,y1,x2,y2 = self._tlwh_to_xyxy(box)

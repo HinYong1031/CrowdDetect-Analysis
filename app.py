@@ -7,7 +7,6 @@ import os
 import imutils
 import deep_sort.deep_sort.deep_sort as ds
 
-
 #YoloV8 official model label data, this project only uses 'person'
 #YoloV8官方模型标签数据，本次项目只使用了'person'
 # classNames=['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
@@ -23,14 +22,13 @@ import deep_sort.deep_sort.deep_sort as ds
 #     'scissors',
 #     'teddy bear', 'hair drier', 'toothbrush']
 
-
-
 def processVideo(inputPath,model):
     #Load deepsort weight file (加载deepsort权重文件)
     tracker = ds.DeepSort('deep_sort/deep_sort/deep/checkpoint/ckpt.t7')
     
     #Load YOLO model file (加载YOLO模型文件)
     model=YOLO(model)
+    model.to('cuda')
     #Read the video from inputPath (从inputPath读入视频)
     cap = cv2.VideoCapture(inputPath)
 
@@ -67,7 +65,7 @@ def processVideo(inputPath,model):
         detections=np.empty((0, 4))
         #Initialize confidence array
         confarray = []
-
+        
         #Exit if no picture is read (如果没有读取到图片则退出)
         if not(ret):
             break
@@ -105,15 +103,15 @@ def processVideo(inputPath,model):
                                 offset=1, font=cv2.FONT_HERSHEY_DUPLEX)
                 # Increment frequency counter for whole bounding box (增加整个边界框的频率计数器)
                 global_imgArray[y1:y2, x1:x2] += 1
-                print("Global Image Array after While Loop", global_imgArray)
-                print("Global Image Array after While Loop Shape", global_imgArray.shape)
+                # print("Global Image Array after While Loop", global_imgArray)
+                # print("Global Image Array after While Loop Shape", global_imgArray.shape)
 
         # Heatmap array preprocessing (热力图数组预处理)
         global_imgArray_norm = (global_imgArray - global_imgArray.min()) / (global_imgArray.max() - global_imgArray.min()) * 255
         global_imgArray_norm = global_imgArray_norm.astype(np.uint8)
         # Apply Gaussian blur to remove noise (应用高斯模糊以去除噪声)
         global_imgArray_norm = cv2.GaussianBlur(global_imgArray_norm, (9, 9), 0)
-        heatmap_img = cv2.applyColorMap(global_imgArray_norm, cv2.COLORMAP_JET)
+        heatmap_img = cv2.applyColorMap(global_imgArray_norm, cv2.COLORMAP_SUMMER)
         # Overlay heatmap on original image with 50% transparency (叠加热力图到原图，透明度50%)
         super_imposed_img = cv2.addWeighted(img, 0.5, heatmap_img, 0.5, 0)
 
@@ -122,7 +120,7 @@ def processVideo(inputPath,model):
                              height=(int(super_imposed_img.shape[0] / 2)))
 
         # Write the processed image to the video (将处理后的图像写入视频)   
-        output_video.write(super_imposed_img)
+        #output_video.write(super_imposed_img)
 
         # Show the processed image (显示处理后的图像)
         cv2.imshow("Processed Output",resize)

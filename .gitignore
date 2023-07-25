@@ -144,3 +144,8 @@ processed_data/
 movement_data.csv
 crowd_data.csv
 video_data.json
+
+# output files
+output_videos/
+SampleOutput/
+*.MOV
