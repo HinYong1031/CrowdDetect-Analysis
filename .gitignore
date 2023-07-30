@@ -149,3 +149,6 @@ video_data.json
 output_videos/
 SampleOutput/
 *.MOV
+
+# Model files
+*.pt
