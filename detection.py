@@ -8,6 +8,7 @@ import imutils
 from colors import RGB_COLORS
 import deep_sort.deep_sort.deep_sort as ds
 import datetime
+import pandas as pd
 
 #YoloV8 official model label data, this project only uses 'person'
 #YoloV8官方模型标签数据，本次项目只使用了'person'
@@ -27,14 +28,27 @@ import datetime
 IF_CAM = False
 
 # Save dict of tracked objects into a csv file (将跟踪对象的字典保存到csv文件中)
-def _record_movement_data(writer, tracked_objects):
+def _record_movement_data(movement_data_writer,tracked_objects,file):
     for track_id in tracked_objects.keys():
         entry_time = tracked_objects[track_id]['Entry Time']
         exit_time = tracked_objects[track_id]['Exit Time']
         movement_tracks = tracked_objects[track_id]['Movement Tracks']
-        writer.writerow([track_id, entry_time, exit_time, movement_tracks])
+        movement_data_writer.writerow([track_id, entry_time, exit_time, movement_tracks])
         
-        
+    file.flush()
+    # os.fsync(file.fileno())
+
+    movement_data_writer.writerow([])
+    file.flush()
+    # os.fsync(file.fileno())
+    
+    df = pd.read_csv('processed_data/movement_data.csv')
+    unique_df = df.dropna(subset=['Track ID'])
+    # Drop duplicate rows based on the 'ID' column, keeping only the last occurrence (most recent row)
+    unique_df = df.drop_duplicates(subset=['Track ID'], keep='last')
+    unique_df.to_csv('processed_data/movement_data.csv', index=False)
+
+
 def heatmap(img, global_imgArray):
     # Heatmap array preprocessing (热力图数组预处理)
     global_imgArray_norm = (global_imgArray - global_imgArray.min()) / (global_imgArray.max() - global_imgArray.min()) * 255
@@ -47,7 +61,7 @@ def heatmap(img, global_imgArray):
     return super_imposed_img
 
 
-def processVideo(inputPath,model,movement_data_writer):
+def processVideo(inputPath,model,movement_data_writer,movement_data_file):
     #Load deepsort weight file (加载deepsort权重文件)
     tracker = ds.DeepSort('deep_sort/deep_sort/deep/checkpoint/ckpt.t7')
     
@@ -148,7 +162,7 @@ def processVideo(inputPath,model,movement_data_writer):
                     'Track ID': Id,
                     'Entry Time': frame_count / fps,
                     'Exit Time': None,
-                    'Movement Tracks': [centre_x, centre_y],
+                    'Movement Tracks': [[centre_x, centre_y]],
                     'grace_period': 0,
                 }
             # Object is still being tracked (物体仍在被追踪)
@@ -171,6 +185,8 @@ def processVideo(inputPath,model,movement_data_writer):
         # Increment frame count
         frame_count += 1
         
+        _record_movement_data(movement_data_writer,tracked_objects,movement_data_file)
+
         # Perform heatmap processing (执行热图处理)
         super_imposed_img = heatmap(img, global_imgArray)
                         
@@ -188,7 +204,6 @@ def processVideo(inputPath,model,movement_data_writer):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    _record_movement_data(movement_data_writer, tracked_objects)
     cap.release() # Close the video file (关闭视频文件)
     cv2.destroyAllWindows() # Close the window (关闭窗口)
     output_video.release() # Close video writing (关闭视频写入)

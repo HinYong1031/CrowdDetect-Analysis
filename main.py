@@ -5,7 +5,7 @@ from detection import processVideo
 if not os.path.exists('processed_data'):
 	os.makedirs('processed_data')
 
-movement_data_file = open('processed_data/movement_data.csv', 'w') 
+movement_data_file = open('processed_data/movement_data.csv', 'a') 
 crowd_data_file = open('processed_data/crowd_data.csv', 'w')
 
 
@@ -20,6 +20,6 @@ if os.path.getsize('processed_data/crowd_data.csv') == 0:
 
 model = "yolov8x.pt"
 input_video_path = "BusStop3.MOV"
-processVideo(input_video_path, model, movement_data_writer) 
+processVideo(input_video_path, model, movement_data_writer, movement_data_file) 
 movement_data_file.close()
 crowd_data_file.close()
