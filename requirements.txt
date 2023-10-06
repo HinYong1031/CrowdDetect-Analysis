@@ -3,6 +3,6 @@ opencv-python
 cvzone
 torch
 matplotlib
-filterpy
-scikit-image
-lap
+imutils
+pandas
+numpy

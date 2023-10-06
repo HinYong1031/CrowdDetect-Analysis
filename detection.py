@@ -195,4 +195,5 @@ def processVideo(inputPath,model,movement_data_writer,movement_data_file,crowd_d
 
     cap.release() # Close the video file (关闭视频文件)
     cv2.destroyAllWindows() # Close the window (关闭窗口)
-    output_video.release() # Close video writing (关闭视频写入)
+    if SAVE_VIDEO:
+        output_video.release() # Close video writing (关闭视频写入)

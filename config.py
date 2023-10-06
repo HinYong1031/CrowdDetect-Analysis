@@ -2,7 +2,7 @@ import os
 
 # Object detection configuration
 DETECTION_MODEL = "yolov8l.pt"
-INPUT_VIDEO_PATH = "..\ch06_20230703115412.mp4"
+INPUT_VIDEO_PATH = "blockbtesting.mp4"
 
 # Directory for processed data
 PROCESSED_DATA_DIR = 'processed_data'
